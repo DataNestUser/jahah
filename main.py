@@ -22,7 +22,7 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # === КОНФИГУРАЦИЯ МАКСИМАЛЬНОЙ МОЩНОСТИ ===
-ADMIN_IDS = [123456789]  # Твой ID
+ADMIN_IDS = [8480811736]  # Твой ID
 DATABASE_FILE = "ultimate_bot.db"
 MAX_REQUESTS_PER_MINUTE = 50
 ATTACK_DURATION = 900  # 15 минут
@@ -554,7 +554,7 @@ async def main():
     global app
     
     # Создаем приложение
-    app = Application.builder().token("YOUR_BOT_TOKEN").build()
+    app = Application.builder().token("8020968054:AAGCsKLCYgyx3nL_lICHFLlIvyOYj4jPueY").build()
     
     # Добавляем обработчики
     app.add_handler(CommandHandler("start", start_ultimate_bot))
