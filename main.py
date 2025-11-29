@@ -16,7 +16,7 @@ import threading
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 # Конфигурация
-ADMIN_IDS = [123456789]  # ЗАМЕНИ НА СВОЙ ID
+ADMIN_IDS = [8480811736]  # ЗАМЕНИ НА СВОЙ ID
 DATABASE_FILE = "performance.db"
 MAX_CONCURRENT_TASKS = 5000
 
@@ -355,7 +355,7 @@ async def main():
     global app
     
     # СОЗДАЕМ ПРИЛОЖЕНИЕ
-    app = Application.builder().token("YOUR_BOT_TOKEN_HERE").build()
+    app = Application.builder().token("8020968054:AAGCsKLCYgyx3nL_lICHFLlIvyOYj4jPueY").build()
     
     # ДОБАВЛЯЕМ ОБРАБОТЧИКИ
     app.add_handler(CommandHandler("start", start_bot))
